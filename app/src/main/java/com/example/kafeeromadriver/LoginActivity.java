@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -71,7 +72,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-
+    private TextView txtSlogan;
     private FirebaseDatabase mAuth;
 
 
@@ -102,17 +103,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
-
+        txtSlogan = findViewById(R.id.txtSlogan);
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Nabila.ttf");
+        txtSlogan.setTypeface(typeface);
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        Button mEmailRegisterButton = (Button) findViewById(R.id.email_register_button);
-        mEmailRegisterButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //showProgress(true);
-                Intent myIntent = new Intent(com.example.kafeeromadriver.LoginActivity.this, RegistrationActivity.class);
-                com.example.kafeeromadriver.LoginActivity.this.startActivity(myIntent);
-            }
-        });
+
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -158,17 +153,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             //Check if user exists in DB
                             if (dataSnapshot.child(mPhoneView.getText().toString()).exists()){
+
                                 User user = dataSnapshot.child(mPhoneView.getText().toString()).getValue(User.class);
-                                user.setPhone(mPhoneView.getText().toString());
-                            if (user.getPassword().equals(mPasswordView.getText().toString())) {
-                                Common.currentUser = user;
-                                Intent homeIntent = new Intent(com.example.kafeeromadriver.LoginActivity.this, Home.class);
-                                startActivity(homeIntent);
-                                finish();
-                                Toast.makeText(com.example.kafeeromadriver.LoginActivity.this, "Sign in Successfull", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(com.example.kafeeromadriver.LoginActivity.this, "Sign in Failed", Toast.LENGTH_SHORT).show();
-                            }
+                                if(Boolean.parseBoolean(user.getIsStaff())) {
+                                    user.setPhone(mPhoneView.getText().toString());
+                                    if (user.getPassword().equals(mPasswordView.getText().toString())) {
+                                        Common.currentUser = user;
+                                        Intent homeIntent = new Intent(com.example.kafeeromadriver.LoginActivity.this, Home.class);
+                                        startActivity(homeIntent);
+                                        finish();
+                                        Toast.makeText(com.example.kafeeromadriver.LoginActivity.this, "Sign in Successfull", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(com.example.kafeeromadriver.LoginActivity.this, "Sign in Failed", Toast.LENGTH_SHORT).show();
+                                    }
+                                }else{
+                                    Toast.makeText(com.example.kafeeromadriver.LoginActivity.this, "Sign in Failed", Toast.LENGTH_SHORT).show();
+                                }
                         }else{
                                 Toast.makeText(com.example.kafeeromadriver.LoginActivity.this, "User doesn't exists in database", Toast.LENGTH_SHORT).show();
                             }
@@ -224,19 +224,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
+                                         @NonNull int[] grantResults) {
         if (requestCode == REQUEST_READ_CONTACTS) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 populateAutoComplete();
             }
         }
     }
-
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
+     */
+
+    /**
+     * ATTEMPT LOGIN Function
+     * eSTART
      */
     private void attemptLogin() {
 
@@ -280,6 +283,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         }
     }
+    /**
+     * ATTEMPT LOGIN Function
+     * END
+     */
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
